@@ -30,7 +30,7 @@ class WebSmsChannelServiceProvider extends ServiceProvider
 
         Notification::resolved(function (ChannelManager $service) {
             $service->extend('websms', function ($app) {
-                if ($this->app['config']['websms.token']) {
+                if (!is_null($this->app['config']['websms.token'])) {
                     return new Channels\WebSmsChannel(
                         new Client($this->app['config']['websms.gateway'],
                             $this->app['config']['websms.token'],

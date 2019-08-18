@@ -4,7 +4,6 @@ namespace Hebinet\Notifications\Channels;
 
 
 use Illuminate\Notifications\Notification;
-use Hebinet\Notifications\Messages\WebSmsMessage;
 use WebSms\Client;
 use WebSms\Response;
 use WebSms\TextMessage;
@@ -46,25 +45,53 @@ class WebSmsChannel
      */
     public function send($notifiable, Notification $notification)
     {
-        if (!$to = $notifiable->routeNotificationFor('websms', $notification)) {
-            return;
+        $to = $notifiable->phone_number ?? null;
+        $routeTo = $notifiable->routeNotificationFor('websms', $notification);
+        if ($routeTo) {
+            $to = $routeTo;
+        }
+        if (!is_array($to)) {
+            $to = [$to];
         }
 
         $message = $notification->toWebsms($notifiable);
-
         if (is_string($message)) {
-            $message = new WebSmsMessage($message);
+            $message = new TextMessage($to, trim($message));;
         }
-
-
-        $message = new TextMessage([$to], trim($message->content));
 
         $client = $this->client;
-        if (config('websms')['test']) {
+        if ($this->getConfig('test') ?? false) {
             $client->test();
         }
+        if ($this->getConfig('verbose') ?? false) {
+            $client->setVerbose(true);
+        }
 
-        return $client->send(new TextMessage([$to], trim($message->content)),
-            intval(strlen(trim($message->content)) / 160) + 1);
+        return $client->send($message, $this->getSmsCount($message->getMessageContent()));
+    }
+
+    /**
+     * @param string $message
+     *
+     * @return int
+     */
+    public function getSmsCount(string $message): int
+    {
+        $length = strlen(trim($message));
+        if ($length > 160) {
+            return intval($length / 153) + 1;
+        }
+
+        return 1;
+    }
+
+    /**
+     * @param $key
+     *
+     * @return mixed
+     */
+    private function getConfig($key)
+    {
+        return config('websms')[$key];
     }
 }

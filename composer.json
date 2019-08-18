@@ -17,7 +17,7 @@
   ],
   "require": {
     "php": "^7.1.3",
-    "illuminate/notifications": "~5.8.0|^6.0",
+    "illuminate/notifications": "~5.8.0",
     "hebinet/websmscom-php": "^1.0"
   },
   "require-dev": {

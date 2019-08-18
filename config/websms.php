@@ -9,5 +9,7 @@ return [
     'username' => env('WEBSMS_USERNAME', null),
     'password' => env('WEBSMS_PASSWORD', null),
 
-    'test' => env('WEBSMS_TEST', true)
+    'test' => env('WEBSMS_TEST', true),
+
+    'verbose' => false
 ];
