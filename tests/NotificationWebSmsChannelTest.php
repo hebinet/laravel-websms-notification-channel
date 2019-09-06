@@ -24,12 +24,12 @@ namespace Illuminate\Tests\Notifications {
     {
         public static $functions;
 
-        public function setUp()
+        public function setUp(): void
         {
             self::$functions = m::mock();
         }
 
-        public function tearDown()
+        public function tearDown(): void
         {
             m::close();
         }
@@ -58,7 +58,8 @@ namespace Illuminate\Tests\Notifications {
             $channel->send($notifiable, $notification);
         }
 
-        public function testSmsCount() {
+        public function testSmsCount()
+        {
             $channel = new WebSmsChannel(
                 $client = m::mock(Client::class)
             );
