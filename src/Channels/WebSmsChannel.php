@@ -4,6 +4,7 @@ namespace Hebinet\Notifications\Channels;
 
 
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Arr;
 use WebSms\Client;
 use WebSms\Response;
 use WebSms\TextMessage;
@@ -50,9 +51,8 @@ class WebSmsChannel
         if ($routeTo) {
             $to = $routeTo;
         }
-        if (!is_array($to)) {
-            $to = [$to];
-        }
+
+        $to = Arr::wrap($to);
 
         $message = $notification->toWebsms($notifiable);
         if (is_string($message)) {
