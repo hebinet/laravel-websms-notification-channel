@@ -36,7 +36,7 @@ class WebSmsChannel
      * @param mixed $notifiable
      * @param \Illuminate\Notifications\Notification $notification
      *
-     * @return Response
+     * @return Response|null
      *
      * @throws \WebSms\Exception\ApiException
      * @throws \WebSms\Exception\AuthorizationFailedException
@@ -55,6 +55,10 @@ class WebSmsChannel
         $to = Arr::wrap($to);
 
         $message = $notification->toWebsms($notifiable);
+        // If false is returned from notification, sending will be aborted!
+        if ($message === false) {
+            return null;
+        }
         if (is_string($message)) {
             $message = new TextMessage($to, trim($message));;
         }
