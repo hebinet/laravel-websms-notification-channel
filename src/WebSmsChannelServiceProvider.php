@@ -30,9 +30,10 @@ class WebSmsChannelServiceProvider extends ServiceProvider
 
         Notification::resolved(function (ChannelManager $service) {
             $service->extend('websms', function ($app) {
-                if (!is_null($this->app['config']['websms.token'])) {
+                if ($this->app['config']['websms.token'] !== null) {
                     return new Channels\WebSmsChannel(
-                        new Client($this->app['config']['websms.gateway'],
+                        new Client(
+                            $this->app['config']['websms.gateway'],
                             $this->app['config']['websms.token'],
                             null,
                             AuthenticationMode::ACCESS_TOKEN
@@ -41,7 +42,8 @@ class WebSmsChannelServiceProvider extends ServiceProvider
                 }
 
                 return new Channels\WebSmsChannel(
-                    new Client($this->app['config']['websms.gateway'],
+                    new Client(
+                        $this->app['config']['websms.gateway'],
                         $this->app['config']['websms.username'],
                         $this->app['config']['websms.password']
                     )

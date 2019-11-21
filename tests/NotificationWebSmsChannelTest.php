@@ -8,6 +8,11 @@ namespace Hebinet\Notifications\Channels {
     {
         return NotificationWebSmsChannelTest::$functions->config($cmd);
     }
+
+    function event($event)
+    {
+        return null;
+    }
 }
 
 namespace Illuminate\Tests\Notifications {

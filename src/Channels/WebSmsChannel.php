@@ -2,7 +2,9 @@
 
 namespace Hebinet\Notifications\Channels;
 
-
+use Illuminate\Notifications\Events\NotificationFailed;
+use Illuminate\Notifications\Events\NotificationSending;
+use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Arr;
 use WebSms\Client;
@@ -17,11 +19,15 @@ class WebSmsChannel
      * @var Client
      */
     protected $client;
+    /**
+     * @var string
+     */
+    private $channelName = 'websms';
 
     /**
      * Create a new WebSms channel instance.
      *
-     * @param Client $client
+     * @param  Client  $client
      *
      * @return void
      */
@@ -33,8 +39,8 @@ class WebSmsChannel
     /**
      * Send the given notification.
      *
-     * @param mixed $notifiable
-     * @param \Illuminate\Notifications\Notification $notification
+     * @param  mixed  $notifiable
+     * @param  \Illuminate\Notifications\Notification  $notification
      *
      * @return Response|null
      *
@@ -47,7 +53,7 @@ class WebSmsChannel
     public function send($notifiable, Notification $notification)
     {
         $to = $notifiable->phone_number ?? null;
-        $routeTo = $notifiable->routeNotificationFor('websms', $notification);
+        $routeTo = $notifiable->routeNotificationFor($this->channelName, $notification);
         if ($routeTo) {
             $to = $routeTo;
         }
@@ -60,7 +66,7 @@ class WebSmsChannel
             return null;
         }
         if (is_string($message)) {
-            $message = new TextMessage($to, trim($message));;
+            $message = new TextMessage($to, trim($message));
         }
 
         $client = $this->client;
@@ -71,11 +77,26 @@ class WebSmsChannel
             $client->setVerbose(true);
         }
 
-        return $client->send($message, $this->getSmsCount($message->getMessageContent()));
+        $response = null;
+        try {
+            event(new NotificationSending($notifiable, $notification, $this->channelName));
+
+            $response = $client->send($message, $this->getSmsCount($message->getMessageContent()));
+
+            event(new NotificationSent($notifiable, $notification, $this->channelName, [
+                'response' => $response
+            ]));
+        } catch (\Exception $e) {
+            event(new NotificationFailed($notifiable, $notification, $this->channelName, [
+                'exception' => $e
+            ]));
+        }
+
+        return $response;
     }
 
     /**
-     * @param string $message
+     * @param  string  $message
      *
      * @return int
      */
@@ -83,7 +104,7 @@ class WebSmsChannel
     {
         $length = strlen(trim($message));
         if ($length > 160) {
-            return intval($length / 153) + 1;
+            return (int) ($length / 153) + 1;
         }
 
         return 1;
