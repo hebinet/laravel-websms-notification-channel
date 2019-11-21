@@ -84,10 +84,14 @@ class WebSmsChannel
             $response = $client->send($message, $this->getSmsCount($message->getMessageContent()));
 
             event(new NotificationSent($notifiable, $notification, $this->channelName, [
+                'to' => $to,
+                'message' => $message,
                 'response' => $response
             ]));
         } catch (\Exception $e) {
             event(new NotificationFailed($notifiable, $notification, $this->channelName, [
+                'to' => $to,
+                'message' => $message,
                 'exception' => $e
             ]));
         }
