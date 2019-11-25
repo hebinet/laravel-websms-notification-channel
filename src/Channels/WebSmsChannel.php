@@ -2,6 +2,9 @@
 
 namespace Hebinet\Notifications\Channels;
 
+use Hebinet\Notifications\Events\WebSmsFailed;
+use Hebinet\Notifications\Events\WebSmsSending;
+use Hebinet\Notifications\Events\WebSmsSent;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Events\NotificationSending;
 use Illuminate\Notifications\Events\NotificationSent;
@@ -79,17 +82,17 @@ class WebSmsChannel
 
         $response = null;
         try {
-            event(new NotificationSending($notifiable, $notification, $this->channelName));
+            event(new WebSmsSending($notifiable, $notification, $this->channelName));
 
             $response = $client->send($message, $this->getSmsCount($message->getMessageContent()));
 
-            event(new NotificationSent($notifiable, $notification, $this->channelName, [
+            event(new WebSmsSent($notifiable, $notification, $this->channelName, [
                 'to' => $to,
                 'message' => $message,
                 'response' => $response
             ]));
         } catch (\Exception $e) {
-            event(new NotificationFailed($notifiable, $notification, $this->channelName, [
+            event(new WebSmsFailed($notifiable, $notification, $this->channelName, [
                 'to' => $to,
                 'message' => $message,
                 'exception' => $e
