@@ -16,9 +16,9 @@
     }
   ],
   "require": {
-    "php": "^7.2",
+    "php": "^7.3|^8.0",
     "illuminate/notifications": "^6.0|^7.0|^8.0",
-    "hebinet/websmscom-php": "^1.0"
+    "hebinet/websmscom-php": "^1.0.7"
   },
   "require-dev": {
     "mockery/mockery": "^1.0",
