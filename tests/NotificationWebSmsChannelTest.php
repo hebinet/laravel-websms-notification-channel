@@ -48,19 +48,23 @@ namespace Illuminate\Tests\Notifications {
                 $client = m::mock(Client::class)
             );
 
-            self::$functions->shouldReceive('config')->with('websms')->twice()->andReturns([
-                'test' => false,
-                'verbose' => false
-            ]);
+            self::$functions->shouldReceive('config')
+                            ->with('websms')
+                            ->twice()
+                            ->andReturns([
+                                'test' => false,
+                                'verbose' => false,
+                            ]);
 
-            $client->shouldReceive('send')->withArgs(function ($message, $count) {
-                if ($message instanceof TextMessage && is_int($count)) {
-                    return true;
-                }
-                return false;
-            })->once();
+            $client->shouldReceive('send')
+                   ->withArgs(function ($message, $count) {
+                       return $message instanceof TextMessage && is_int($count);
+                   })
+                   ->once();
 
             $channel->send($notifiable, $notification);
+
+            $this->assertEquals('this is the way', $notification->toWebsms($notifiable));
         }
 
         public function testSmsCount()
@@ -88,7 +92,7 @@ namespace Illuminate\Tests\Notifications {
     {
         public function toWebsms($notifiable)
         {
-            return 'this is my message';
+            return 'this is the way';
         }
     }
 }

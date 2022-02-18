@@ -10,23 +10,20 @@ use WebSms\Client;
 
 class WebSmsChannelServiceProvider extends ServiceProvider
 {
-    public function boot()
+    public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__ . '/../config/websms.php' => config_path('websms.php'),
-            ], 'config');
+        if ( ! $this->app->runningInConsole()) {
+            return;
         }
+
+        $this->publishes([
+            __DIR__.'/../config/websms.php' => config_path('websms.php'),
+        ], 'config');
     }
 
-    /**
-     * Register the service provider.
-     *
-     * @return void
-     */
-    public function register()
+    public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/websms.php', 'websms');
+        $this->mergeConfigFrom(__DIR__.'/../config/websms.php', 'websms');
 
         Notification::resolved(function (ChannelManager $service) {
             $service->extend('websms', function ($app) {

@@ -5,9 +5,6 @@ namespace Hebinet\Notifications\Channels;
 use Hebinet\Notifications\Events\WebSmsFailed;
 use Hebinet\Notifications\Events\WebSmsSending;
 use Hebinet\Notifications\Events\WebSmsSent;
-use Illuminate\Notifications\Events\NotificationFailed;
-use Illuminate\Notifications\Events\NotificationSending;
-use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Arr;
 use WebSms\Client;
@@ -22,38 +19,22 @@ class WebSmsChannel
      * @var Client
      */
     protected $client;
-    /**
-     * @var string
-     */
-    private $channelName = 'websms';
 
-    /**
-     * Create a new WebSms channel instance.
-     *
-     * @param  Client  $client
-     *
-     * @return void
-     */
+    private string $channelName = 'websms';
+
     public function __construct(Client $client)
     {
         $this->client = $client;
     }
 
     /**
-     * Send the given notification.
-     *
-     * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
-     *
-     * @return Response|null
-     *
      * @throws \WebSms\Exception\ApiException
      * @throws \WebSms\Exception\AuthorizationFailedException
      * @throws \WebSms\Exception\HttpConnectionException
      * @throws \WebSms\Exception\ParameterValidationException
      * @throws \WebSms\Exception\UnknownResponseException
      */
-    public function send($notifiable, Notification $notification)
+    public function send($notifiable, Notification $notification): ?Response
     {
         $to = $notifiable->phone_number ?? null;
         $routeTo = $notifiable->routeNotificationFor($this->channelName, $notification);
@@ -102,11 +83,6 @@ class WebSmsChannel
         return $response;
     }
 
-    /**
-     * @param  string  $message
-     *
-     * @return int
-     */
     public function getSmsCount(string $message): int
     {
         $length = strlen(trim($message));
@@ -117,11 +93,6 @@ class WebSmsChannel
         return 1;
     }
 
-    /**
-     * @param $key
-     *
-     * @return mixed
-     */
     private function getConfig($key)
     {
         return config('websms')[$key];
