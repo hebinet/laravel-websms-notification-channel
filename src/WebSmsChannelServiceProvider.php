@@ -3,9 +3,8 @@
 namespace Hebinet\Notifications;
 
 use Illuminate\Notifications\ChannelManager;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\ServiceProvider;
 use WebSms\AuthenticationMode;
 use WebSms\Client;
 
@@ -13,7 +12,7 @@ class WebSmsChannelServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        if ( ! $this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             return;
         }
 
@@ -26,8 +25,8 @@ class WebSmsChannelServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/websms.php', 'websms');
 
-        Notification::resolved(function (ChannelManager $service) {
-            $service->extend('websms', function () {
+        Notification::resolved(function(ChannelManager $service) {
+            $service->extend('websms', function() {
                 if ($this->app['config']['websms.token'] !== null) {
                     return new Channels\WebSmsChannel(
                         new Client(

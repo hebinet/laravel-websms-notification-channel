@@ -74,7 +74,7 @@ class WebSmsChannel
     {
         $length = strlen(trim($message));
         if ($length > 160) {
-            return (int)($length / 153) + 1;
+            return (int) ($length / 153) + 1;
         }
 
         return 1;
