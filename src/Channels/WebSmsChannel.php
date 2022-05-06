@@ -7,33 +7,20 @@ use Hebinet\Notifications\Events\WebSmsSending;
 use Hebinet\Notifications\Events\WebSmsSent;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Event;
 use WebSms\Client;
 use WebSms\Response;
 use WebSms\TextMessage;
 
 class WebSmsChannel
 {
-    /**
-     * The WebSms client instance.
-     *
-     * @var Client
-     */
-    protected $client;
+    protected string $channelName = 'websms';
 
-    private string $channelName = 'websms';
-
-    public function __construct(Client $client)
+    public function __construct(protected Client $client)
     {
-        $this->client = $client;
     }
 
-    /**
-     * @throws \WebSms\Exception\ApiException
-     * @throws \WebSms\Exception\AuthorizationFailedException
-     * @throws \WebSms\Exception\HttpConnectionException
-     * @throws \WebSms\Exception\ParameterValidationException
-     * @throws \WebSms\Exception\UnknownResponseException
-     */
     public function send($notifiable, Notification $notification): ?Response
     {
         $to = $notifiable->phone_number ?? null;
@@ -44,39 +31,39 @@ class WebSmsChannel
 
         $to = Arr::wrap($to);
 
+        /** @var \WebSms\Message|\WebSms\BinaryMessage|string|false $message */
         $message = $notification->toWebsms($notifiable);
         // If false is returned from notification, sending will be aborted!
-        if ($message === false) {
+        if (! $message) {
             return null;
         }
+
         if (is_string($message)) {
             $message = new TextMessage($to, trim($message));
         }
 
         $client = $this->client;
-        if ($this->getConfig('test') ?? false) {
-            $client->test();
-        }
+        $client->test($this->getConfig('test') ?? false);
         if ($this->getConfig('verbose') ?? false) {
             $client->setVerbose(true);
         }
 
         $response = null;
         try {
-            event(new WebSmsSending($notifiable, $notification, $this->channelName));
+            Event::dispatch(new WebSmsSending($notifiable, $notification, $this->channelName));
 
             $response = $client->send($message, $this->getSmsCount($message->getMessageContent()));
 
-            event(new WebSmsSent($notifiable, $notification, $this->channelName, [
+            Event::dispatch(new WebSmsSent($notifiable, $notification, $this->channelName, [
                 'to' => $to,
                 'message' => $message,
-                'response' => $response
+                'response' => $response,
             ]));
         } catch (\Exception $e) {
-            event(new WebSmsFailed($notifiable, $notification, $this->channelName, [
+            Event::dispatch(new WebSmsFailed($notifiable, $notification, $this->channelName, [
                 'to' => $to,
                 'message' => $message,
-                'exception' => $e
+                'exception' => $e,
             ]));
         }
 
@@ -87,14 +74,14 @@ class WebSmsChannel
     {
         $length = strlen(trim($message));
         if ($length > 160) {
-            return (int) ($length / 153) + 1;
+            return (int)($length / 153) + 1;
         }
 
         return 1;
     }
 
-    private function getConfig($key)
+    protected function getConfig($key): mixed
     {
-        return config('websms')[$key];
+        return Config::get("websms.{$key}");
     }
 }
