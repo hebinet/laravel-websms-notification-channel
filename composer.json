@@ -17,8 +17,8 @@
   ],
   "require": {
     "php": "^8.0",
-    "illuminate/notifications": "^8.0|^9.0",
-    "hebinet/websmscom-php": "^2.0"
+    "illuminate/notifications": "^8.0|^9.0|^10.0",
+    "hebinet/websms-client": "^2.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.8",
