@@ -3,6 +3,7 @@
 namespace Hebinet\Notifications;
 
 use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
 use WebSms\AuthenticationMode;
@@ -17,8 +18,8 @@ class WebSmsChannelServiceProvider extends ServiceProvider
         }
 
         $this->publishes([
-            __DIR__.'/../config/websms.php' => config_path('websms.php'),
-        ], 'config');
+            __DIR__.'/../config/websms.php' => $this->app->configPath('websms.php'),
+        ], 'websms');
     }
 
     public function register(): void
@@ -26,13 +27,12 @@ class WebSmsChannelServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/../config/websms.php', 'websms');
 
         Notification::resolved(function(ChannelManager $service) {
-            $service->extend('websms', function() {
-                if ($this->app['config']['websms.token'] !== null) {
             $service->extend('websms', static function() {
+                if (Config::get('websms.token') !== null) {
                     return new Channels\WebSmsChannel(
                         new Client(
-                            $this->app['config']['websms.gateway'],
-                            $this->app['config']['websms.token'],
+                            Config::get('websms.gateway'),
+                            Config::get('websms.token'),
                             null,
                             AuthenticationMode::ACCESS_TOKEN
                         )
@@ -41,9 +41,9 @@ class WebSmsChannelServiceProvider extends ServiceProvider
 
                 return new Channels\WebSmsChannel(
                     new Client(
-                        $this->app['config']['websms.gateway'],
-                        $this->app['config']['websms.username'],
-                        $this->app['config']['websms.password']
+                        Config::get('websms.gateway'),
+                        Config::get('websms.username'),
+                        Config::get('websms.password')
                     )
                 );
             });

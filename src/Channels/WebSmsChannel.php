@@ -43,16 +43,16 @@ class WebSmsChannel
         }
 
         $client = $this->client;
-        $client->test($this->getConfig('test') ?? false);
-        if ($this->getConfig('verbose') ?? false) {
-            $client->setVerbose(true);
+        $client->test(Config::get('websms.test', false));
+        if (Config::get('websms.verbose', false)) {
+            $client->verbose(true);
         }
 
         $response = null;
         try {
             Event::dispatch(new WebSmsSending($notifiable, $notification, $this->channelName));
 
-            $response = $client->send($message, $this->getSmsCount($message->getMessageContent()));
+            $response = $client->send($message, $message->getMessageCount());
 
             Event::dispatch(new WebSmsSent($notifiable, $notification, $this->channelName, [
                 'to' => $to,
@@ -68,20 +68,5 @@ class WebSmsChannel
         }
 
         return $response;
-    }
-
-    public function getSmsCount(string $message): int
-    {
-        $length = strlen(trim($message));
-        if ($length > 160) {
-            return (int) ($length / 153) + 1;
-        }
-
-        return 1;
-    }
-
-    protected function getConfig($key): mixed
-    {
-        return Config::get("websms.{$key}");
     }
 }
